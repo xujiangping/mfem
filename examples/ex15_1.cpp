@@ -58,6 +58,10 @@
 using namespace std;
 using namespace mfem;
 
+extern "C" {
+    void my_fortran_subroutine_(int* a, int* b, int* result);
+}
+
 // Choices for the problem setup. Affect bdr_func and rhs_func.
 int problem;
 int nfeatures;
@@ -79,11 +83,11 @@ int main(int argc, char *argv[])
    nfeatures = 1;
    const char *mesh_file = "../data/star-hilbert.mesh";
    int order = 2;
-   double t_final = 1.0;
+   double t_final = 0.3;
    double max_elem_error = 5.0e-3;
    double hysteresis = 0.15; // derefinement safety coefficient
-   int ref_levels = 0;
-   int nc_limit = 3;         // maximum level of hanging nodes
+   int ref_levels = 1;
+   int nc_limit = 1;         // maximum level of hanging nodes
    bool visualization = true;
    bool visit = false;
    int which_estimator = 0;
@@ -139,11 +143,55 @@ int main(int argc, char *argv[])
       if (ref_levels > 0) { ref_levels--; }
       mesh.SetCurvature(2);
    }
+
+   {
+      cout << "Number of elements just after reading: " << mesh.GetNE() << endl;
+      ofstream omesh("Test15_1_read.vtk");  
+      omesh.precision(8);  
+      mesh.PrintVTK(omesh);  
+   }    
+       
    mesh.EnsureNCMesh(true);
    for (int l = 0; l < ref_levels; l++)
    {
       mesh.UniformRefinement();
    }
+
+   {
+      cout << "Number of elements just after UniformRefinement: " << mesh.GetNE() << endl;
+      ofstream omeshu("Test15_1_UniformRefinement.vtk");  
+      omeshu.precision(8);  
+      mesh.PrintVTK(omeshu);  
+   }
+
+    Array<int> elementsToRefine1; //指定加密单元
+    elementsToRefine1.Append(0);
+    elementsToRefine1.Append(1);
+    // Refine the specified elements
+    mesh.GeneralRefinement(elementsToRefine1,1,1);
+
+   {
+      cout << "Number of elements after the first refinement: " << mesh.GetNE() << endl;
+      ofstream omesh1("Test15_1_FirstRefinement.vtk");  
+      omesh1.precision(8);  
+      mesh.PrintVTK(omesh1);  
+   }
+
+    Array<int> elementsToRefine2; //指定加密单元
+    elementsToRefine2.Append(0);
+    elementsToRefine2.Append(1);
+
+    //Refine the specified elements
+    mesh.GeneralRefinement(elementsToRefine2,1,1);
+ 
+   {
+      cout << "Number of elements after the second refinement: " << mesh.GetNE() << endl;  
+      ofstream omesh1("Test15_1_SecondRefinement.vtk");  
+      omesh1.precision(8);  
+      mesh.PrintVTK(omesh1);  
+      return 0;
+   }   
+       
    // Make sure tet-only meshes are marked for local refinement.
    mesh.Finalize(true);
 
@@ -247,6 +295,7 @@ int main(int argc, char *argv[])
    //     refine the mesh as many times as necessary. Then we derefine any
    //     elements which have very small errors.
    x = 0.0;
+
    for (double time = 0.0; time < t_final + 1e-10; time += 0.01)
    {
       cout << "\nTime " << time << "\n\nRefinement:" << endl;
@@ -302,6 +351,7 @@ int main(int argc, char *argv[])
             sout.precision(8);
             sout << "solution\n" << mesh << x << flush;
          }
+
          if (visit)
          {
             visit_dc.SetCycle(vis_cycle++);
@@ -340,6 +390,16 @@ int main(int argc, char *argv[])
    }
 
    delete estimator;
+
+
+{
+      ofstream omesh("Test15.vtk");  
+      omesh.precision(8);  
+      mesh.PrintVTK(omesh);  
+      x.SaveVTK(omesh,"solution",0);
+      cout << "Solution saved in to VTK mesh file: " << "Test15.vtk" << endl;
+}
+
 
    return 0;
 }
@@ -451,3 +511,4 @@ double rhs_func(const Vector &pt, double t)
 {
    return composite_func(pt, t, front_laplace, ball_laplace);
 }
+
