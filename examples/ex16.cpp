@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
    int ref_levels = 2;
    int order = 2;
    int ode_solver_type = 3;
-   double t_final = 0.5;
+   double t_final = 0.2;
    double dt = 1.0e-2;
    double alpha = 1.0e-2;
    double kappa = 0.5;
@@ -196,7 +196,6 @@ int main(int argc, char *argv[])
    u_gf.ProjectCoefficient(u_0);
    Vector u;
    u_gf.GetTrueDofs(u);
-
    // 7. Initialize the conduction operator and the visualization.
    ConductionOperator oper(fespace, alpha, kappa, u);
 
@@ -284,6 +283,26 @@ int main(int argc, char *argv[])
       ofstream osol("ex16-final.gf");
       osol.precision(precision);
       u_gf.Save(osol);
+   }
+   {
+
+      // const char mesh_file[] = "mesh-explorer.vtk"; 
+      // ofstream omesh(mesh_file); 
+      // omesh.precision(14); 
+      // mesh->PrintVTK(omesh); 
+      // cout << "New VTK mesh file: " << mesh_file << endl; 
+     // u_gf.SaveVTK(omesh,"solution",0); 
+     // cout << "Solution saved in to VTK mesh file: " << "Test.vtk" << endl;
+
+
+      ofstream omesh("Test16.vtk");  
+      omesh.precision(8);  
+      mesh->PrintVTK(omesh);  
+      cout << "New VTK mesh file: " << "Test.vtk" << endl; 
+      u_gf.SaveVTK(omesh,"solution",0); 
+      cout << "Solution saved in to VTK mesh file: " << "Test.vtk" << endl;
+
+
    }
 
    // 10. Free the used memory.

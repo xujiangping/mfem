@@ -240,6 +240,16 @@ int main(int argc, char *argv[])
       sol_sock << "solution\n" << *mesh << x << flush;
    }
 
+
+{
+      ofstream omesh("Test.vtk");  
+      omesh.precision(8);  
+      mesh->PrintVTK(omesh);  
+      cout << "New VTK mesh file: " << "Test.vtk" << endl;
+      x.SaveVTK(omesh,"solution",0);
+      cout << "Solution saved in to VTK mesh file: " << "Test.vtk" << endl;
+}
+
    // 14. Free the used memory.
    delete a;
    delete b;
